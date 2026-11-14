@@ -3,7 +3,7 @@ import importlib
 import numpy as np
 import torch
 from scipy import ndimage
-from scipy.ndimage.filters import gaussian_filter
+from scipy.ndimage import gaussian_filter
 
 def metric_2_mri(mri_data, query_points):
     '''THis function works weather the data have a batch dimension or not. 

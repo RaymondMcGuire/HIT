@@ -36,71 +36,36 @@ This repo contains the code to train and test HIT on the HIT dataset (available 
 
 # Installation
 
-This code is tested on Ubuntu 20.04 with Python 3.8. We do not guarantee that it will work on other systems.
+This fork replaces the original `requirements.txt` / `setup.py` with a [uv](https://docs.astral.sh/uv/) project that uses current PyTorch built for CUDA 12.8, which RTX 50-series GPUs need. The original instructions (Ubuntu 20.04, Python 3.8, torch 2.2.0 + CUDA 11.8) are in the upstream repository, https://github.com/MarilynKeller/HIT.
+
+Tested: inference with the released checkpoints (`demos/infer_smpl.py`, slices and meshes, male and female) on Windows 11, RTX 5090 Laptop GPU, Python 3.12, torch 2.11.0+cu128. Training and dataset tools have not been run in this environment.
 
 ```shell
-git clone https://github.com/MarilynKeller/HIT 
-cd hit
+git clone https://github.com/RaymondMcGuire/HIT
+cd HIT
+uv sync
 ```
 
-#### Set up a virtual environment
-```shell
-python3.8 -m venv hit_venv
-source hit_venv/bin/activate
-pip install -r requirements.txt
-```
+`uv sync` creates `.venv` and installs the inference dependencies from `uv.lock`. Run commands with `uv run`, for example `uv run python demos/infer_smpl.py ...`.
 
-#### Install packages
-Check your CUDA toolkit version
-```shell
-nvcc --version
-```
-Install torch depending on CUDA toolkit version. See: https://pytorch.org/get-started/previous-versions/ . 
+What changed compared with upstream:
 
-For 11.8:
-```shell
-pip install torch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118
-```
+- **No compiled extras for inference.** The LEAP Cython extension is replaced by a NumPy implementation of the same MISE algorithm (`hit/utils/mise.py`). `psbody-mesh` and `wandb` are imported only by the functions that use them.
+- **No chumpy.** The official SMPL `.pkl` files are read with a small unpickler that keeps the arrays.
+- **Paths.** `hit/hit_config.py` defaults to `pretrained/` and `body_models/` in the repository root. Override them with the environment variables `HIT_PRETRAINED_FOLDER`, `HIT_SMPL_MODELS` and `HIT_DATA_FOLDER`.
+- **Bug fix.** `demos/infer_smpl.py` passed the translation as `trans`, which the SMPL wrapper ignored; it is now `transl`.
 
-
-Install relevant packages
-```shell
-pip install -r requirements.txt
-pip install  git+https://github.com/MPI-IS/mesh.git
-pip install  git+https://github.com/mattloper/chumpy
-pip install -e .
-```
-
-The **LEAP** package is used for its marching cube implementation and creating ground truth occupancy. Install it with:
-```shell
-cd hit
-mkdir external
-cd external 
-git clone https://github.com/neuralbodies/leap.git
-cd leap
-python setup.py build_ext --inplace
-pip install -e .
-```
+Training needs the additional packages in the `train` extra (`uv sync --extra train`) plus `psbody-mesh` and LEAP as in the upstream instructions. That path is untested here.
 
 #### SMPL model files
-Download the SMPL model from https://smpl.is.tue.mpg.de/ and update the path `smplx_models_path` in `hit_config.py` to the proper path.
-The folder hierarchy should be the following:
+Download the SMPL model (version 1.1.0 for Python) from https://smpl.is.tue.mpg.de/ and place the three files in `body_models/smpl`, renamed as follows:
 ```
-${MODELS}
-├── smpl
-│   ├── SMPL_FEMALE.pkl
-│   └── SMPL_MALE.pkl
-│   └── SMPL_NEUTRAL.pkl
-├── smplh
-│   ├── SMPLH_FEMALE.pkl
-│   └── SMPLH_MALE.pkl
-└── smplx
-├── SMPLX_FEMALE.npz
-├── SMPLX_FEMALE.pkl
-├── SMPLX_MALE.npz
-├── SMPLX_MALE.pkl
-├── SMPLX_NEUTRAL.npz
-└── SMPLX_NEUTRAL.pkl
+${HIT}
+└── body_models
+    └── smpl
+        ├── SMPL_FEMALE.pkl    (basicmodel_f_lbs_10_207_0_v1.1.0.pkl)
+        ├── SMPL_MALE.pkl      (basicmodel_m_lbs_10_207_0_v1.1.0.pkl)
+        └── SMPL_NEUTRAL.pkl   (basicmodel_neutral_lbs_10_207_0_v1.1.0.pkl)
 ```
 
 # Demos
@@ -108,7 +73,7 @@ ${MODELS}
 ## Prerained models
 
 You can download the pretrained model checkpoints for male and female from the Download tab at [https://hit.is.tue.mpg.de/].
-Create a folder `HIT/pretrained` and place the pretrained models inside, or edit the path `trained_models_folder` in `hit_config.py`. 
+Create a folder `HIT/pretrained` and place the pretrained models inside, or set `HIT_PRETRAINED_FOLDER`. 
 
 You should have the following hierarchy:
 ```

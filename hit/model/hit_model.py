@@ -1,4 +1,6 @@
 import copy
+import os
+import tempfile
 
 import numpy as np
 import torch
@@ -88,7 +90,8 @@ class HITModel(torch.nn.Module):
         if checkpoint_path is not None:
             print('Using checkpoint from ', checkpoint_path)
             checkpoint = checkpoint_path
-            state_dict = torch.load(checkpoint)
+            # Lightning checkpoint: holds more than tensors, so weights_only must be off. Only load trusted files.
+            state_dict = torch.load(checkpoint, map_location='cpu', weights_only=False)
             self.load_state_dict(state_dict['state_dict'])   
 
         else:
@@ -549,7 +552,7 @@ class HITModel(torch.nn.Module):
         mesh = trimesh.Trimesh(smpl_output.vertices.detach().cpu().squeeze().numpy(), self.smpl.faces, process=False)      
         
         if use_mise:
-            from leap.tools.libmise import MISE
+            from hit.utils.mise import MISE
             value_grid_list = []
             for b_ind in range(B):
                 mesh_extractor = MISE(mise_resolution0, mise_depth, level)
@@ -646,14 +649,14 @@ class HITModel(torch.nn.Module):
                     # cols = comp / torch.linalg.norm(comp, axis=-1).unsqueeze(-1)
                     cols = np.abs(comp) / np.abs(comp).max()
                     mesh = trimesh.Trimesh(verts, faces, vertex_colors=cols, process=False)
-                    mesh.export('/tmp/comp_mesh_mc.ply')    
+                    mesh.export(os.path.join(tempfile.gettempdir(), 'comp_mesh_mc.ply'))    
                     
                     
                 else:
                     w_pd = self.deformer.query_weights(verts_batched, {'latent': cond['lbs'], 'betas': cond['betas']*0})
                     cols = weights2colors(w_pd[0].cpu().numpy())
                     mesh = trimesh.Trimesh(verts, faces, vertex_colors=cols, process=False)
-                    mesh.export('/tmp/lbs_mesh.ply')
+                    mesh.export(os.path.join(tempfile.gettempdir(), 'lbs_mesh.ply'))
 
                 
             else:

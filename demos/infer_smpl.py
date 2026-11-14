@@ -64,7 +64,7 @@ def main():
     hl.hit_model.apply_compression = False
 
     # Run smpl forward pass to get the SMPL mesh
-    smpl_output = hl.smpl(betas=data['betas'], body_pose=data['body_pose'], global_orient=data['global_orient'], trans=data['transl'])
+    smpl_output = hl.smpl(betas=data['betas'], body_pose=data['body_pose'], global_orient=data['global_orient'], transl=data['transl'])
     
     if args.output == 'slices':
         # Extract slices of each tissue

@@ -41,6 +41,31 @@ ModelOutput = namedtuple('ModelOutput',
 ModelOutput.__new__.__defaults__ = (None,) * len(ModelOutput._fields)
 
 
+class _ChumpyArray(object):
+    ''' Stand-in for a pickled chumpy.Ch object: keeps only its array '''
+
+    def __setstate__(self, state):
+        self.x = state['x']
+
+
+class _ModelUnpickler(pickle.Unpickler):
+    ''' The official SMPL pkl files store some arrays (shapedirs in v1.1.0) as
+        chumpy objects. chumpy no longer installs on current Python / NumPy,
+        and only the array inside is needed, so read that directly.
+    '''
+
+    def find_class(self, module, name):
+        if module.split('.')[0] == 'chumpy':
+            return _ChumpyArray
+        return super(_ModelUnpickler, self).find_class(module, name)
+
+
+def load_model_pickle(smpl_file):
+    data = _ModelUnpickler(smpl_file, encoding='latin1').load()
+    return {key: (val.x if isinstance(val, _ChumpyArray) else val)
+            for key, val in data.items()}
+
+
 def create(model_path, model_type='smpl',
            **kwargs):
     ''' Method for creating a model from a path and a model type
@@ -177,7 +202,7 @@ class SMPL(nn.Module):
                 smpl_path)
 
             with open(smpl_path, 'rb') as smpl_file:
-                data_struct = Struct(**pickle.load(smpl_file,encoding='latin1'))
+                data_struct = Struct(**load_model_pickle(smpl_file))
         super(SMPL, self).__init__()
         self.batch_size = batch_size
 

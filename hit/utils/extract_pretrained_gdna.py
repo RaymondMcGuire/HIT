@@ -16,7 +16,7 @@ def get_state_dict(to_extract = 'deformer', source=None):
     else:
         raise NotImplementedError
 
-    checkpoint = torch.load(path)
+    checkpoint = torch.load(path, map_location='cpu', weights_only=False)
     checkpoint['state_dict'].keys()
     
     state_dict = {}

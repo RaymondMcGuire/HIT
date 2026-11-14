@@ -1,17 +1,19 @@
 import os
 
 package_directory = os.path.dirname(os.path.abspath(__file__))
+repo_directory = os.path.dirname(package_directory)
 
-################## To edit
-# Dataset
-packaged_data_folder = '/home/mkeller2/data2/Data/hit_release/hit_dataset_v1.0/repackaged'
+################## To edit, or set the matching environment variable
+# Dataset (only needed for training and evaluation)
+packaged_data_folder = os.environ.get('HIT_DATA_FOLDER', os.path.join(repo_directory, 'hit_dataset_v1.0', 'repackaged'))
 
 # Trained HIT models
-trained_models_folder = os.path.join(package_directory, '../pretrained')  # folder to save the trained models
-pretrained_male_smpl = os.path.join(package_directory, '../pretrained/pretrained_male_smpl.ckpt') 
-pretrained_female_smpl = os.path.join(package_directory, '../pretrained/pretrained_female_smpl.ckpt')
+trained_models_folder = os.environ.get('HIT_PRETRAINED_FOLDER', os.path.join(repo_directory, 'pretrained'))  # folder to save the trained models
+pretrained_male_smpl = os.path.join(trained_models_folder, 'pretrained_male_smpl.ckpt')
+pretrained_female_smpl = os.path.join(trained_models_folder, 'pretrained_female_smpl.ckpt')
                                     
-smplx_models_path = '/is/cluster/fast/mkeller2/Data/body_model/smplx_models' # folder containing the smplx models, to download from https://smpl-x.is.tue.mpg.de/downloads
+# Folder containing smpl/SMPL_MALE.pkl and smpl/SMPL_FEMALE.pkl, to download from https://smpl.is.tue.mpg.de/
+smplx_models_path = os.environ.get('HIT_SMPL_MODELS', os.path.join(repo_directory, 'body_models'))
 
 # Training logging
 wandb_entity = 'mkeller' # wandb account or team to log to

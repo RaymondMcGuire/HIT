@@ -3,7 +3,6 @@ import pickle
 import random
 import numpy as np
 import trimesh
-from psbody.mesh import Mesh
 
 import hit.hit_config as cg
 
@@ -86,8 +85,7 @@ new_part_dict_kin_tree = {
 with open(cg.v2p, 'rb') as f:
     data = pickle.load(f)
     data = [list(dict_part_name.keys())[list(dict_part_name.values()).index(i)] for i in data]
-    SMPL_V2P = torch.tensor(data, device='cuda:0')
-    # TODO: change device
+    SMPL_V2P = torch.tensor(data, device='cuda:0' if torch.cuda.is_available() else 'cpu')
 
 def canonical_x_bodypose():
     """Generate a canonical body pose with legs slightly open
@@ -195,7 +193,7 @@ def get_skinning_weights(points, smpl_vertices, smpl, free_verts=None):
 
     debug=False
     if debug:
-        from psbody.mesh import MeshViewer, MeshViewers
+        from psbody.mesh import Mesh, MeshViewer, MeshViewers
         from psbody.mesh.sphere import Sphere
         mv = MeshViewer()
         tigh_mask = (part_id==1).numpy() | (part_id==2)
@@ -232,6 +230,7 @@ def get_skinning_weights(points, smpl_vertices, smpl, free_verts=None):
         print(f"Corrected {mask_wrong_r.sum()} vertices wrongly associated with the right thigh")
 
     if debug:
+        from psbody.mesh import Mesh
         tigh_mask = (part_id==1).numpy() | (part_id==2).numpy()
         Mesh(v=points[tigh_mask], f=[], vc=weights2colors(skinning_weights[tigh_mask]).numpy()).show()
         
@@ -278,6 +277,7 @@ def psm(verts, smpl, values=None, indices=False, maxval=None, norm=False, displa
     norm: if True, and values is an array [B,6890,3] of 3d offsets, the norm of the 3d displacements will be used to color the mesh
     '''
     
+    from psbody.mesh import Mesh  # optional dependency, visualisation only
     mesh = Mesh(v=verts[0].detach().cpu().numpy(), f=smpl.faces)
 
     if indices is True:
@@ -327,6 +327,7 @@ def t2m(mesh, show=True):
     '''Convert a trimesh mesh to a mpi mesh'''
     v = mesh.vertices
     f = mesh.faces
+    from psbody.mesh import Mesh  # optional dependency, visualisation only
     m = Mesh(v=v, f=f)
     if show:
         m.show()

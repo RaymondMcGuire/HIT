@@ -1,4 +1,5 @@
 import os
+import tempfile
 
 import matplotlib
 import matplotlib.cm as cm
@@ -12,6 +13,8 @@ from PIL import Image
 from hit.utils.figures import tissue_palette
 from hit.utils.smpl_utils import weights2colors
 
+_TMP_PNG = os.path.join(tempfile.gettempdir(), 'hit_slice_tmp.png')
+
 
 def add_colorbar(ax, im, fig):
     divider = make_axes_locatable(ax)
@@ -22,9 +25,9 @@ def add_colorbar(ax, im, fig):
 def fig2img(fig, close_fig=True):
     """ Convert a Matplotlib figure to a PIL Image and return it"""
     fig.tight_layout()
-    fig.savefig('/tmp/test.png')
+    fig.savefig(_TMP_PNG)
     # load and return the image
-    img = Image.open('/tmp/test.png')
+    img = Image.open(_TMP_PNG)
     try:
         # Try a first time to get the data to avoid this bug:
         # *** OSError: unrecognized data stream contents when reading image file
@@ -252,9 +255,9 @@ class SliceLevelSet():
                 else:
                     qs = 2
                 plt.quiver(self.xx[::qs, ::qs], self.yy[::qs, ::qs], values[::qs,::qs,0], values[::qs,::qs,2], c[::qs,::qs],  cmap=cmap, angles='xy', scale_units='xy', scale=1)
-                fig.savefig('/tmp/test.png')
+                fig.savefig(_TMP_PNG)
                 # load and return the image
-                img = Image.open('/tmp/test.png')
+                img = Image.open(_TMP_PNG)
                 values = img
             
         else:
@@ -393,6 +396,6 @@ if __name__ == '__main__':
     
     sl.eval_slice(z0, h) # 3 channel output
     # save plt figure
-    plt.savefig('/tmp/slice_levelset.png')
+    plt.savefig(os.path.join(tempfile.gettempdir(), 'slice_levelset.png'))
     print('saved /tmp/slice_levelset.png')
     

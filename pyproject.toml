@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hit"
+version = "1.1.0"
+description = "HIT: Estimating Internal Human Implicit Tissues from the Body Surface (uv / CUDA 12.8 port)"
+readme = "README.md"
+license = { file = "LICENSE.txt" }
+authors = [{ name = "Marilyn Keller", email = "marilyn.keller@tuebingen.mpg.de" }]
+requires-python = ">=3.10,<3.13"
+# Inference dependencies only. RTX 50-series GPUs need the CUDA 12.8 wheels,
+# which exist from torch 2.7 on.
+dependencies = [
+    "torch>=2.7",
+    "torchvision>=0.22",
+    "numpy",
+    "scipy",
+    "trimesh",
+    "rtree",
+    "omegaconf",
+    "scikit-image",
+    "matplotlib",
+    "tqdm",
+    "pillow",
+    "opencv-python-headless",
+]
+
+[project.optional-dependencies]
+# Training / dataset / visualisation. Not exercised by this port.
+train = [
+    "pytorch-lightning",
+    "hydra-core",
+    "wandb",
+    "datasets",
+    "pyrender",
+    "pysdf",
+    "prettytable",
+    "SimpleITK",
+    "ipdb",
+]
+
+[tool.setuptools.packages.find]
+include = ["hit*"]
+
+[tool.setuptools.package-data]
+hit = ["assets/*", "configs/**/*.yaml"]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128", marker = "sys_platform == 'win32' or sys_platform == 'linux'" }]
+torchvision = [{ index = "pytorch-cu128", marker = "sys_platform == 'win32' or sys_platform == 'linux'" }]

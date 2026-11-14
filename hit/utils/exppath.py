@@ -1,6 +1,5 @@
 import glob
 import os
-import wandb
 import hit.hit_config as cg
 
 class Exppath:
@@ -76,6 +75,7 @@ class Exppath:
         else:
             wandb_mode = 'online'
         print(f"Resuming wandb logging for run {id}")
+        import wandb
         logger = wandb.init(name=self.exp_name, project='hit', id=id, dir=train_folder, resume='must', mode=wandb_mode)
         return logger
 

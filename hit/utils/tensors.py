@@ -70,7 +70,7 @@ def cond_create(betas, body_pose=None, generator=None, smpl=None):
     cond['betas'] = betas/10.
     cond['betas'][:,0] = -cond['betas'][:,0] # This is just to leverage the pretrained neutral smpl model, should be removed eventually
     
-    z_shape = torch.zeros((B, 64)).cuda()  
+    z_shape = torch.zeros((B, 64), device=betas.device)
     cond['lbs'] = z_shape
     if generator is not None:           
       cond['latent'] = generator(z_shape)
