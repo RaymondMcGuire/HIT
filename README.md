@@ -54,6 +54,7 @@ What changed compared with upstream:
 - **No chumpy.** The official SMPL `.pkl` files are read with a small unpickler that keeps the arrays.
 - **Paths.** `hit/hit_config.py` defaults to `pretrained/` and `body_models/` in the repository root. Override them with the environment variables `HIT_PRETRAINED_FOLDER`, `HIT_SMPL_MODELS` and `HIT_DATA_FOLDER`.
 - **Bug fix.** `demos/infer_smpl.py` passed the translation as `trans`, which the SMPL wrapper ignored; it is now `transl`.
+- **Convergence flag.** `HITModel.query` also returns `valid`: False where the Broyden search for the canonical position of a posed point did not converge (tolerance 1e-5 m, 50 steps). Upstream classifies such points at the last iterate without telling the caller; outside the body this scatters small specks of tissue.
 
 Training needs the additional packages in the `train` extra (`uv sync --extra train`) plus `psbody-mesh` and LEAP as in the upstream instructions. That path is untested here.
 
