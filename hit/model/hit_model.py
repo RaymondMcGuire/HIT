@@ -311,6 +311,9 @@ class HITModel(torch.nn.Module):
         if mask is None:
             mask = torch.ones( (n_batch, T), device=pts_d.device, dtype=torch.bool)
 
+        # Whether a canonical correspondence was found. Only the posed query searches for one.
+        valid = torch.ones((n_batch, T), device=pts_d.device, dtype=torch.bool)
+
         #jumphere
         if template:
             pts_c = pts_d
@@ -347,6 +350,7 @@ class HITModel(torch.nn.Module):
                                             eval_mode=eval_mode,
                                             part_id = part_id,
                                             skinning_weights=skinning_weights)
+            valid = others['valid_ids'].all(dim=-1)
             
             # test to offset can space by a constant
             #pts_c = pts_c + 0.1 #try1
@@ -470,7 +474,7 @@ class HITModel(torch.nn.Module):
             
         weights = self.deformer.query_weights(pts_c2, {'latent': cond['lbs'], 'betas': cond['betas']})    
             
-        output = {'pred_occ':occ_pd2, 'pts_c':pts_c2, 'smpl_occ': occ_smpl_pd,  'weights':weights}
+        output = {'pred_occ':occ_pd2, 'pts_c':pts_c2, 'smpl_occ': occ_smpl_pd,  'weights':weights, 'valid': valid}
         
         return output
 
